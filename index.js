@@ -4,23 +4,45 @@ const keepAlive = require("./server")
 const Database = require("@replit/database")
 
 const db = new Database()
-const client = Client({ intents: [Intents.FLAGS.GUILDS,Intents.FLAGS.GUILD_MEMBERS] })
+const client = new Client({ intents: [Intents.FLAGS.GUILDS,Intents.FLAGS.GUILD_MEMBERS] });
 
-// TODO: implement add role to discord member
-// const role = interaction.options.getRole('GILDDAO');
-// const member = interaction.options.getMember('target');
-// member.roles.add(role);
+const GILD_DAO_ROLE = "Gild DAO"
 
-db.get("responding").then(value => {
-  if (value == null) {
-    db.set("responding", true)
+function createGilderRole(guild) {
+  guild.roles.create({
+    data: {
+      name: GILD_DAO_ROLE,
+      permissions: [], // TODO: update this
+      color: 'YELLOW',
+    },
+    reason: 'For people who are in gild',
+  });
+}
+
+function addGilderRole (interaction) {
+  console.log(interaction.guild.roles)
+  var role = interaction.guild.roles.cache.find(role => role.name === GILD_DAO_ROLE);
+  
+  if(role) {
+    interaction.member.roles.add(role); 
+  } else {
+     interaction.channel.send(`Role ${GILD_DAO_ROLE} does not exist. Create with $createRole`);
   }
+}
+
+client.on("message", msg => {
+  if (msg.author.bot) return
+
+  if (msg.content.startsWith("$getRole")) {
+    msg.channel.send(`Adding role ${GILD_DAO_ROLE}`);
+    addGilderRole(msg);
+  }
+
+  if (msg.content.startsWith("$createRole")) {
+    msg.channel.send(`Creating role ${GILD_DAO_ROLE}.`);
+    createGilderRole(msg.guild);
+  } 
 })
-
-function getGuild() {
-
-  return "guilds";
-} 
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`)
