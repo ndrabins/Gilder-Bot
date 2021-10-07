@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "@replit/database": "^2.0.0",
+    "@supabase/supabase-js": "^1.24.0",
     "discord": "^0.8.2",
     "discord.js": "^12.5.1",
     "express": "^4.17.1",
