@@ -2,6 +2,7 @@ const { Client, Intents } = require('discord.js');
 const fetch = require("node-fetch")
 const keepAlive = require("./server")
 const Database = require("@replit/database")
+const { createClient } = require('@supabase/supabase-js');
 
 const db = new Database()
 const client = new Client({ 
@@ -9,33 +10,29 @@ const client = new Client({
   partials: ['MESSAGE', 'REACTION', 'CHANNEL']
 });
 
-const { createClient } = require('@supabase/supabase-js');
-
 const supabaseUrl = process.env['SUPABASE_URL']
 const supabaseAnonKey = process.env["SUPABASE_ANON_KEY"]
-// Supabase for confirming connection
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-async function tryInsert() {
-// Insert member 
-// This happens on guild member verifying wallet + discord
-// const { data, error } = await supabase
-//   .from('guild_member')
-//   .insert(
-//     { id: '123423', wallet_key: "12312", guild_id: '12364' }
-//   );
+const GILD_DAO_ROLE = "Gild DAO"
+
+async function registerMember() {
+// register member discord + public wallet
+const { data, error } = await supabase
+  .from('guild_member')
+  .insert(
+    { id: '123423', wallet_key: "12312", guild_id: '12364' }
+  );
 
 // Fetch members by guild id
 // used on frontend for adding wallets, distributing coins
-  const { data, error } = await supabase
-    .from('guild_member')
-    .select()
-    .eq('guild_id', "123")
+  // const { data, error } = await supabase
+  //   .from('guild_member')
+  //   .select()
+  //   .eq('guild_id', "123")
 
-  console.log('Inserting into supabase', data, error);
+  // console.log('Inserting into supabase', data, error);
 };
-
-const GILD_DAO_ROLE = "Gild DAO"
 
 // 1. On ready, create new channel
 // 2. Bot posts URL link for guild users to add wallet/ sign up for DAO
@@ -53,7 +50,6 @@ function createGilderRole(guild) {
 }
 
 function getGuilds(msg) {
-  console.log(msg.guild.members.cache);
   return msg.guild.members.cache;
 }
 
@@ -69,7 +65,7 @@ function addGilderRole (interaction) {
 }
 
 
-// Temp for messaging
+// Temp for testing
 client.on("message", msg => {
   if (msg.author.bot) return
 
@@ -87,6 +83,26 @@ client.on("message", msg => {
     msg.channel.send(`Getting Guilds.`);
     getGuilds(msg);
   } 
+
+  if (msg.content.startsWith("$createChannel")) {
+    msg.guild.channels.create('bot-channel-create', 
+      { reason: 'Channel for bot to manage DAO in discord.' }
+    ).then(console.log)
+     .catch(console.error);
+  } 
+});
+
+
+// WORKS HYPE
+client.on('guildCreate', async (guild) => {
+  try {
+   await guild.channels.create('bot-channel-create', 
+      { reason: 'Channel for bot to manage DAO in discord.' }
+    );
+  } catch(error) {
+    console.log('error:', error);
+  }
+
 });
 
 // TODO: Add roles on reaction after checking if they are authenticated w/ wallet
